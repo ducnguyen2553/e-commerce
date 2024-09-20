@@ -25,7 +25,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
     const queries = { ...req.query }
     //Tách các trường đặc biệt khỏi query
     const excludeFields = ['limit', 'sort', 'page', 'fields']
-    excludeFields.forEach(element => delete queries[element])
+    excludeFields.forEach(el => delete queries[el])
     //format lại các operators cho đúng cú pháp của mongoose
     let queryString = JSON.stringify(queries)
     queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, matchedEl => `$${matchedEl}`)
@@ -93,25 +93,33 @@ const ratings = asyncHandler(async (req, res) => {
     const { star, comment, pid } = req.body
     if (!star || !pid) throw new Error('Missing input')
     const rantingProduct = await Product.findById(pid)
-    const alreadyRating = rantingProduct?.ratings?.find(element => element.postedBy.toString() === _id)
-    console.log(alreadyRating);
+    const alreadyRating = rantingProduct?.ratings?.find(el => el.postedBy.toString() === _id)
+    // console.log(alreadyRating);
     if (alreadyRating) {
         //update star & comment
         await Product.updateOne({
-            ratings: { $elMatch: alreadyRating }
-        },{
-            
-        })
+            ratings: { $elemMatch: alreadyRating }
+        }, {
+            $set: { "ratings.$.star": star, "ratings.$.comment": comment }
+        }, { new: true })
     } else {
         //add star & comment
-        const response = await Product.findByIdAndUpdate(pid, {
+        await Product.findByIdAndUpdate(pid, {
             $push: { ratings: { star, comment, postedBy: _id } }
         }, { new: true })
-        console.log(response);
+        // console.log(response);
     }
+    //sum ratings
+    const updateProduct = await Product.findById(pid)
+    const ratingCount = updateProduct.ratings.length
+    const sumRatings = updateProduct.ratings.reduce((sum, el) => sum + +el.star, 0)
+    updateProduct.totalRatings = Math.round(sumRatings * 10 / ratingCount) / 10
+
+    await updateProduct.save()
+
     return res.status(200).json({
         status: true,
-
+        updateProduct
     })
 })
 
