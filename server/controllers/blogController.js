@@ -38,7 +38,7 @@ khi có người dùng like 1 bài blog thì :
 //push : thêm vào
 const likeBlog = asyncHandler(async (req, res) => {
     const { _id } = req.user
-    const { bid } = req.body
+    const { bid } = req.params
     if (!bid) throw new Error('Missing input')
     const blog = await Blog.findById(bid)
     const alreadyDisliked = blog?.disLikes?.find(el => el.toString() === _id)
@@ -64,10 +64,61 @@ const likeBlog = asyncHandler(async (req, res) => {
         })
     }
 })
+const dislikeBlog = asyncHandler(async (req, res) => {
+    const { _id } = req.user
+    const { bid } = req.params
+    if (!bid) throw new Error('Missing input')
+    const blog = await Blog.findById(bid)
+    const alreadyLiked = blog?.likes?.find(el => el.toString() === _id)
+    if (alreadyLiked) {
+        const response = await Blog.findByIdAndUpdate(bid, { $pull: { likes: _id } }, { new: true })
+        return res.json({
+            success: response ? true : false,
+            result: response
+        })
+    }
+    const isDisliked = blog?.disLikes?.find(el => el.toString() === _id)
+    if (isDisliked) {
+        const response = await Blog.findByIdAndUpdate(bid, { $pull: { disLikes: _id } }, { new: true })
+        return res.json({
+            success: response ? true : false,
+            result: response
+        })
+    } else {
+        const response = await Blog.findByIdAndUpdate(bid, { $push: { disLikes: _id } }, { new: true })
+        return res.json({
+            success: response ? true : false,
+            result: response
+        })
+    }
+})
+
+
+const getBlog = asyncHandler(async (req, res) => {
+    const { bid } = req.params
+    const blog = await Blog.findByIdAndUpdate(bid, { $inc: { numberViews: 1 } }, { new: true })
+        .populate('likes', 'firstName lastName')
+        .populate('disLikes', 'firstName lastName')
+    return res.json({
+        success: blog ? true : false,
+        result: blog
+    })
+})
+const deleteBlog = asyncHandler(async (req, res) => {
+    const { bid } = req.params
+    const blog = await Blog.findByIdAndDelete(bid)
+    return res.json({
+        success: blog ? true : false,
+        result: blog || 'Can not delete blog'
+    })
+})
 
 module.exports = {
     createNewBlog,
     updateBlog,
     getAllBlogs,
-    likeBlog
+    likeBlog,
+    dislikeBlog,
+    getBlog,
+    deleteBlog
 }
