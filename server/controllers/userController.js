@@ -141,7 +141,7 @@ const resetPassword = asyncHandler(async (req, res) => {
 })
 
 const getUsers = asyncHandler(async (req, res) => {
-    const response = await User.find().select('-refreshToken -password -role')
+    const response = await User.find().select('-refreshToken -password ')
     return res.status(200).json({
         success: response ? true : false,
         users: response
