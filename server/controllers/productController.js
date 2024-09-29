@@ -84,7 +84,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
     const deleteProduct = await Product.findByIdAndDelete(pid)
     return res.status(200).json({
         success: deleteProduct ? true : false,
-        updateProduct: deleteProduct ? deleteProduct : 'Cannot delete product'
+        deleteProduct: deleteProduct ? deleteProduct : 'Cannot delete product'
     })
 })
 
@@ -123,8 +123,14 @@ const ratings = asyncHandler(async (req, res) => {
     })
 })
 const uploadImagesProduct = asyncHandler(async (req, res) => {
-    console.log(req.file);
-    return res.json('OKE')
+    const { pid } = req.params
+    if (!req.files) throw new Error('Missing input')
+    const response = await Product.findByIdAndUpdate(pid, { $push: { images: { $each: req.files.map(el => el.path) } } }, { new: true })
+    return res.status(200).json({
+        status: response ? true : false,
+        updateProduct: response ? response : 'Cannot upload images product'
+    })
+    // return res.json('image upload successful !!!')
 })
 
 module.exports = {

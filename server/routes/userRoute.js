@@ -13,6 +13,7 @@ router.put('/resetpassword', ctrls.resetPassword)
 router.get('/', [verifyAccessToken, isAdmin], ctrls.getUsers)
 router.delete('/', [verifyAccessToken, isAdmin], ctrls.deleteUsers)
 router.put('/current', [verifyAccessToken], ctrls.updateUser)
-router.put('/:uid', [verifyAccessToken,isAdmin], ctrls.updateUserByAdmin)
+router.put('/address/:uid', [verifyAccessToken, isAdmin], ctrls.updateUserAddress)
+router.put('/:uid', [verifyAccessToken, isAdmin], ctrls.updateUserByAdmin)
 
 module.exports = router

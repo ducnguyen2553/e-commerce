@@ -9,7 +9,7 @@ const createNewBrand = asyncHandler(async (req, res) => {
     })
 })
 const getAllBrands = asyncHandler(async (req, res) => {
-    const response = await Brand.find()
+    const response = await Brand.find().select('-createdAt -updatedAt ')
     return res.json({
         success: response ? true : false,
         Brands: response ? response : 'Cannot get brand'
